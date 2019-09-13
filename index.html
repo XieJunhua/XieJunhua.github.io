@@ -273,7 +273,7 @@
                 
               
 
-              <time title="创建时间：2019-09-13 14:28:51 / 修改时间：14:30:55" itemprop="dateCreated datePublished" datetime="2019-09-13T14:28:51+08:00">2019-09-13</time>
+              <time title="创建时间：2019-09-13 14:28:51 / 修改时间：14:32:12" itemprop="dateCreated datePublished" datetime="2019-09-13T14:28:51+08:00">2019-09-13</time>
             </span>
           
             
@@ -309,47 +309,15 @@
 <p>许多web应用提供大量的静态内容，主要是从磁盘中读取数据染回将数据写到套接字中，通过网络发送出去。这其中并不涉及到数据的变化。这种场景就比较适合使用零拷贝。零拷贝可以直接将数据读到内存之后，直接写到socket的channel中，减少了数据从内核态拷贝回用户态，再从用户态拷贝回内核态带来的性能损失。</p>
 </blockquote>
 <h4 id="正常操作"><a href="#正常操作" class="headerlink" title="正常操作"></a>正常操作</h4><p>从磁盘中读取数据发送出去，或者读取数据然后写到另外一个位置，不对数据本身做任何处理</p>
-<p><img src="https://tva1.sinaimg.cn/large/006y8mN6gy1g6xvjpw2m1j30kr0hv77n.jpg" alt="image-20190910162724088"></p>
-<p>需要进行如下几个步骤：</p>
-<ol>
-<li>java虚拟机通过用户空间调用底层read()请求，请求发给内核空间，这个时候会发生从用户空间模式到内核空间模式的切换。 </li>
-<li>切换到内核空间模式就可以进行磁盘硬件的访问了，通过dma(直接内存访问 )技术，读取数据，并保存在内核状态的一个缓冲区中 </li>
-<li>将内核空间缓冲区中的内容copy到用户空间缓冲区，这个时候就完成了读取的操作 </li>
-<li>Write操作的时候，会先将数据读到用户态的缓冲区中，然后copy到内核态的缓冲区中，最后通过内核态输出到硬件 </li>
-</ol>
-<p>整个过程中会进行四次用户空间和内核空间的交互，还会进行两次没意义的内存拷贝，因为这里用户空间只是做为临时的数据拷贝，并没起到其他的作用。数据的交互起始都是在内核空间完成的。</p>
-<h4 id="用户空间的零拷贝"><a href="#用户空间的零拷贝" class="headerlink" title="用户空间的零拷贝"></a>用户空间的零拷贝</h4><p><img src="https://tva1.sinaimg.cn/large/006y8mN6gy1g6ui6wu60ej311k0u0gsc.jpg" alt="image-20190910163049719"></p>
-<p> 用户空间不必作为临时的数据中转，直接在内核空间中进行数据的复制。 用户空间不需要参与到数据的交互。如果使用内存映射的方式将数据加载到内存中，可以对数据进行修改。内存映射的方式是直接将文件映射到内核空间，所以这个时候也不会产生从用户空间到内核空间的切换。(但是在数据发送之前，还是需要在内核空间内进行数据的复制)</p>
-<ol>
-<li>用户空间通过sendfile()请求，切换到内核空间  </li>
-<li>内核空间读取数据到内核空间缓冲区中  </li>
-<li>将缓冲区中的数据写到输出目标的缓冲区中  </li>
-<li>输出到硬件 </li>
-</ol>
-<p>代码演示</p>
-<p>服务端代码</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">    InetSocketAddress inetSocketAddress = <span class="keyword">new</span> InetSocketAddress(<span class="number">8899</span>);</span><br><span class="line">    ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();</span><br><span class="line">    ServerSocket serverSocket = serverSocketChannel.socket();</span><br><span class="line">    serverSocket.setReuseAddress(<span class="keyword">true</span>);</span><br><span class="line">    serverSocket.bind(inetSocketAddress);</span><br><span class="line"></span><br><span class="line">    ByteBuffer buffer = ByteBuffer.allocate(<span class="number">4096</span>);</span><br><span class="line">    <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">      SocketChannel socketChannel = serverSocketChannel.accept();</span><br><span class="line">      socketChannel.configureBlocking(<span class="keyword">true</span>);</span><br><span class="line">      <span class="keyword">int</span> readCount = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">while</span> (-<span class="number">1</span> != readCount) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          readCount = socketChannel.read(buffer);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception ex) &#123;</span><br><span class="line">          ex.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        buffer.rewind();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-
-<p>老的客户端</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OldIOClient</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">    Socket socket = <span class="keyword">new</span> Socket(<span class="string">"localhost"</span>, <span class="number">8899</span>);</span><br><span class="line">    <span class="comment">// 一个大</span></span><br><span class="line">    String fileName = <span class="string">"/Users/xiejunhua/Downloads/未命名文件夹/2019-04-08-raspbian-stretch-full.zip"</span>;</span><br><span class="line">    InputStream inputStream = <span class="keyword">new</span> FileInputStream(fileName);</span><br><span class="line">    DataOutputStream dataOutputStream = <span class="keyword">new</span> DataOutputStream(socket.getOutputStream());</span><br><span class="line"></span><br><span class="line">    <span class="keyword">byte</span>[] buffer = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">4096</span>];</span><br><span class="line">    <span class="keyword">long</span> readCoun;</span><br><span class="line">    <span class="keyword">long</span> total = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">long</span> startTime = System.currentTimeMillis();</span><br><span class="line">    <span class="keyword">while</span> ((readCoun = inputStream.read(buffer)) &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">      total += readCoun;</span><br><span class="line">      dataOutputStream.write(buffer);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    System.out.println(<span class="string">"发送总字节数: "</span> + total + <span class="string">", 耗时: "</span> + (System.currentTimeMillis() - startTime));</span><br><span class="line"></span><br><span class="line">    dataOutputStream.close();</span><br><span class="line">    socket.close();</span><br><span class="line">    inputStream.close();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>老的客户端代码执行时间:</p>
-<p><img src="https://tva1.sinaimg.cn/large/006y8mN6gy1g6ul664o1oj30i7015dft.jpg" alt="image-20190910181257542"></p>
-<p>新的客户端代码:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NewIOClient</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">    SocketChannel socketChannel = SocketChannel.open();</span><br><span class="line">    socketChannel.connect(<span class="keyword">new</span> InetSocketAddress(<span class="string">"localhost"</span>, <span class="number">8899</span>));</span><br><span class="line">    socketChannel.configureBlocking(<span class="keyword">true</span>);</span><br><span class="line">    String fileName = <span class="string">"/Users/xiejunhua/Downloads/未命名文件夹/2019-04-08-raspbian-stretch-full.zip"</span>;</span><br><span class="line">    FileChannel fileChannel = <span class="keyword">new</span> FileInputStream(fileName).getChannel();</span><br><span class="line">    <span class="keyword">long</span> startTime = System.currentTimeMillis();</span><br><span class="line">    <span class="comment">// 将数据之间发送到socketChannel中</span></span><br><span class="line">    <span class="keyword">long</span> transferCount = fileChannel.transferTo(<span class="number">0</span>, fileChannel.size(), socketChannel);</span><br><span class="line"></span><br><span class="line">    System.out.println(<span class="string">"发送总字节数: "</span> + transferCount + <span class="string">", 耗时: "</span> + (System.currentTimeMillis() - startTime));</span><br><span class="line">    fileChannel.close();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>新的客户端代码执行的时间:</p>
-<p><img src="https://tva1.sinaimg.cn/large/006y8mN6gy1g6ul711fb9j30g001iq2z.jpg" alt="image-20190910181437005"></p>
-<p>结果可以很明显的看到，使用了零拷贝的代码在效率上有很大的提升。</p>
-<h4 id="真正意义上的零拷贝"><a href="#真正意义上的零拷贝" class="headerlink" title="真正意义上的零拷贝"></a>真正意义上的零拷贝</h4><p>进一步减少数据在内核空间内的拷贝和 复制</p>
-<p><img src="https://tva1.sinaimg.cn/large/006y8mN6gy1g6ui9e85dej30si0imdi4.jpg" alt="3B7716C0-D96D-4ACE-84CD-9CE019EE69BB"></p>
-<p><img src="https://tva1.sinaimg.cn/large/006y8mN6gy1g6ui9tmjffj30y60ncwoh.jpg" alt="A1EBD232-62F5-42F6-A70B-CDD391BC3923"></p>
-<ol>
-<li>文件从用户空间拷贝到内核空间</li>
-<li>将拷贝到内核空间的数据的文件描述符的信息被copy到socket buffer中，而不需要拷贝整个数据。文件描述符号包含两部分信息(kernel buffer内存地址，和kernel buffer的长度)</li>
-<li>协议引擎负责发送数据，从socket buffer中读取到kernel buffer的文件描述符信息，然后直接从kernel buffer中读取数据直接发送。从两个buffer中读取数据的操作就是一种gather操作</li>
-</ol>
-
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/09/13/zero-copy/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
         
       
     </div>

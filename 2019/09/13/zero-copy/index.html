@@ -69,7 +69,7 @@
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6gy1g6ul711fb9j30g001iq2z.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6gy1g6ui9e85dej30si0imdi4.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6gy1g6ui9tmjffj30y60ncwoh.jpg">
-<meta property="og:updated_time" content="2019-09-13T06:30:55.566Z">
+<meta property="og:updated_time" content="2019-09-13T06:32:12.456Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="java中的零拷贝">
 <meta name="twitter:description" content="许多web应用提供大量的静态内容，主要是从磁盘中读取数据染回将数据写到套接字中，通过网络发送出去。这其中并不涉及到数据的变化。这种场景就比较适合使用零拷贝。零拷贝可以直接将数据读到内存之后，直接写到socket的channel中，减少了数据从内核态拷贝回用户态，再从用户态拷贝回内核态带来的性能损失。  正常操作从磁盘中读取数据发送出去，或者读取数据然后写到另外一个位置，不对数据本身做任何处理">
@@ -282,7 +282,7 @@
                 
               
 
-              <time title="创建时间：2019-09-13 14:28:51 / 修改时间：14:30:55" itemprop="dateCreated datePublished" datetime="2019-09-13T14:28:51+08:00">2019-09-13</time>
+              <time title="创建时间：2019-09-13 14:28:51 / 修改时间：14:32:12" itemprop="dateCreated datePublished" datetime="2019-09-13T14:28:51+08:00">2019-09-13</time>
             </span>
           
             
@@ -326,6 +326,8 @@
 <p>许多web应用提供大量的静态内容，主要是从磁盘中读取数据染回将数据写到套接字中，通过网络发送出去。这其中并不涉及到数据的变化。这种场景就比较适合使用零拷贝。零拷贝可以直接将数据读到内存之后，直接写到socket的channel中，减少了数据从内核态拷贝回用户态，再从用户态拷贝回内核态带来的性能损失。</p>
 </blockquote>
 <h4 id="正常操作"><a href="#正常操作" class="headerlink" title="正常操作"></a>正常操作</h4><p>从磁盘中读取数据发送出去，或者读取数据然后写到另外一个位置，不对数据本身做任何处理</p>
+<a id="more"></a>
+
 <p><img src="https://tva1.sinaimg.cn/large/006y8mN6gy1g6xvjpw2m1j30kr0hv77n.jpg" alt="image-20190910162724088"></p>
 <p>需要进行如下几个步骤：</p>
 <ol>
