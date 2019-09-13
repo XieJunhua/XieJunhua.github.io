@@ -55,31 +55,40 @@
   };
 </script>
 
-  <meta name="description" content="简单的描述测试">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Hexo">
-<meta property="og:url" content="http://xiejunhua.github.com/index.html">
+  <meta name="description" content="许多web应用提供大量的静态内容，主要是从磁盘中读取数据染回将数据写到套接字中，通过网络发送出去。这其中并不涉及到数据的变化。这种场景就比较适合使用零拷贝。零拷贝可以直接将数据读到内存之后，直接写到socket的channel中，减少了数据从内核态拷贝回用户态，再从用户态拷贝回内核态带来的性能损失。  正常操作从磁盘中读取数据发送出去，或者读取数据然后写到另外一个位置，不对数据本身做任何处理">
+<meta name="keywords" content="Java,NIO,零拷贝">
+<meta property="og:type" content="article">
+<meta property="og:title" content="java中的零拷贝">
+<meta property="og:url" content="http://xiejunhua.github.com/2019/09/13/zero-copy/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="简单的描述测试">
+<meta property="og:description" content="许多web应用提供大量的静态内容，主要是从磁盘中读取数据染回将数据写到套接字中，通过网络发送出去。这其中并不涉及到数据的变化。这种场景就比较适合使用零拷贝。零拷贝可以直接将数据读到内存之后，直接写到socket的channel中，减少了数据从内核态拷贝回用户态，再从用户态拷贝回内核态带来的性能损失。  正常操作从磁盘中读取数据发送出去，或者读取数据然后写到另外一个位置，不对数据本身做任何处理">
 <meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6gy1g6xvjpw2m1j30kr0hv77n.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6gy1g6ui6wu60ej311k0u0gsc.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6gy1g6ul664o1oj30i7015dft.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6gy1g6ul711fb9j30g001iq2z.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6gy1g6ui9e85dej30si0imdi4.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6gy1g6ui9tmjffj30y60ncwoh.jpg">
+<meta property="og:updated_time" content="2019-09-13T06:30:55.566Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hexo">
-<meta name="twitter:description" content="简单的描述测试">
-  <link rel="canonical" href="http://xiejunhua.github.com/">
+<meta name="twitter:title" content="java中的零拷贝">
+<meta name="twitter:description" content="许多web应用提供大量的静态内容，主要是从磁盘中读取数据染回将数据写到套接字中，通过网络发送出去。这其中并不涉及到数据的变化。这种场景就比较适合使用零拷贝。零拷贝可以直接将数据读到内存之后，直接写到socket的channel中，减少了数据从内核态拷贝回用户态，再从用户态拷贝回内核态带来的性能损失。  正常操作从磁盘中读取数据发送出去，或者读取数据然后写到另外一个位置，不对数据本身做任何处理">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6gy1g6xvjpw2m1j30kr0hv77n.jpg">
+  <link rel="canonical" href="http://xiejunhua.github.com/2019/09/13/zero-copy/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome: true,
-    isPost: false,
+    isHome: false,
+    isPost: true,
     isPage: false,
     isArchive: false
   };
 </script>
 
-  <title>Hexo</title>
+  <title>java中的零拷贝 | Hexo</title>
   
 
 
@@ -238,12 +247,13 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
+
   <div id="posts" class="posts-expand">
-        <article itemscope itemtype="http://schema.org/Article">
+      <article itemscope itemtype="http://schema.org/Article">
   
   
   
-  <div class="post-block home">
+  <div class="post-block post">
     <link itemprop="mainEntityOfPage" href="http://xiejunhua.github.com/2019/09/13/zero-copy/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -256,9 +266,8 @@
       <meta itemprop="name" content="Hexo">
     </span>
       <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/09/13/zero-copy/" class="post-title-link" itemprop="url">java中的零拷贝</a>
+        <h1 class="post-title" itemprop="name headline">java中的零拷贝
+
           
         </h1>
 
@@ -295,6 +304,14 @@
           
 
           
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
 
         </div>
       </header>
@@ -305,7 +322,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <blockquote>
+        <blockquote>
 <p>许多web应用提供大量的静态内容，主要是从磁盘中读取数据染回将数据写到套接字中，通过网络发送出去。这其中并不涉及到数据的变化。这种场景就比较适合使用零拷贝。零拷贝可以直接将数据读到内存之后，直接写到socket的channel中，减少了数据从内核态拷贝回用户态，再从用户态拷贝回内核态带来的性能损失。</p>
 </blockquote>
 <h4 id="正常操作"><a href="#正常操作" class="headerlink" title="正常操作"></a>正常操作</h4><p>从磁盘中读取数据发送出去，或者读取数据然后写到另外一个位置，不对数据本身做任何处理</p>
@@ -350,209 +367,56 @@
 <li>协议引擎负责发送数据，从socket buffer中读取到kernel buffer的文件描述符信息，然后直接从kernel buffer中读取数据直接发送。从两个buffer中读取数据的操作就是一种gather操作</li>
 </ol>
 
-        
-      
     </div>
 
     
     
     
-      <footer class="post-footer">
-          <div class="post-eof"></div>
         
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-        <article itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="http://xiejunhua.github.com/2019/09/09/test1/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Xie.Junhua">
-      <meta itemprop="description" content="简单的描述测试">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/09/09/test1/" class="post-title-link" itemprop="url">Flask应用整合uWsgi,nginx,supervisor</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-09-09 11:55:35 / 修改时间：16:58:35" itemprop="dateCreated datePublished" datetime="2019-09-09T11:55:35+08:00">2019-09-09</time>
-            </span>
-          
-            
-
-            
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Python/" itemprop="url" rel="index"><span itemprop="name">Python</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
       
-          <blockquote>
-<p>本文使用uWsgi,supervisor,nginx来构建一个简单的python web程序，尽可能的模拟实际生产环境中的一些状况。</p>
-</blockquote>
-<h4 id="Flask应用"><a href="#Flask应用" class="headerlink" title="Flask应用"></a>Flask应用</h4><p>新建一个简单的run.py</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask, escape, request</span><br><span class="line"></span><br><span class="line">app = Flask(__name__)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">()</span>:</span></span><br><span class="line">    name = request.args.get(<span class="string">"name"</span>, <span class="string">"World"</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="string">f'Hello, <span class="subst">&#123;escape(name)&#125;</span>!'</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#注意这里一定要将我们自己的启动方式放到main中，否则在uwsgi启动的时候会启动两个端口，uwsgi的socket的端口，和这里的8088端口</span></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    app.run(host=<span class="string">'0.0.0.0'</span>, port=<span class="number">8088</span>, debug=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
 
-<p>python文件写好了之后，直接执行python run.py</p>
-<p>然后在浏览器中访问<code>{yourip}:8088</code></p>
-          <!--noindex-->
+      <footer class="post-footer">
           
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/09/09/test1/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Java/" rel="tag"># Java</a>
+            
+              <a href="/tags/NIO/" rel="tag"># NIO</a>
+            
+              <a href="/tags/零拷贝/" rel="tag"># 零拷贝</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/09/test1/" rel="next" title="Flask应用整合uWsgi,nginx,supervisor">
+                  <i class="fa fa-chevron-left"></i> Flask应用整合uWsgi,nginx,supervisor
+                </a>
+              
             </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
 
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+            </div>
+          </div>
         
       </footer>
+    
   </div>
   
   
   
   </article>
 
-    
-        <article itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="http://xiejunhua.github.com/2019/09/03/hello-world/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Xie.Junhua">
-      <meta itemprop="description" content="简单的描述测试">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/09/03/hello-world/" class="post-title-link" itemprop="url">Hello World</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-09-03 06:27:35" itemprop="dateCreated datePublished" datetime="2019-09-03T06:27:35+08:00">2019-09-03</time>
-            </span>
-          
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="noopener">Deployment</a></p>
-
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
   </div>
-  
-  
-  
-  </article>
-
-    
-  </div>
-
-  
 
 
           </div>
@@ -571,6 +435,11 @@
 
   <aside class="sidebar">
     <div class="sidebar-inner">
+        
+        
+        
+        
+      
 
       <ul class="sidebar-nav motion-element">
         <li class="sidebar-nav-toc">
@@ -583,6 +452,8 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#正常操作"><span class="nav-number">1.</span> <span class="nav-text">正常操作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#用户空间的零拷贝"><span class="nav-number">2.</span> <span class="nav-text">用户空间的零拷贝</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#真正意义上的零拷贝"><span class="nav-number">3.</span> <span class="nav-text">真正意义上的零拷贝</span></a></li></ol></div>
+        
       </div>
       <!--/noindex-->
 
